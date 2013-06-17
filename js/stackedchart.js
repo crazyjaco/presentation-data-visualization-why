@@ -60,7 +60,7 @@ d3.csv("data.csv", function(error, data) {
   var state = svg.selectAll(".state")
       .data(data)
     .enter().append("g")
-      .attr("class", "g")
+      .attr("class", "bar")
       .attr("transform", function(d) { return "translate(" + x(d.State) + ",0)"; });
 
   state.selectAll("rect")
@@ -89,5 +89,36 @@ d3.csv("data.csv", function(error, data) {
       .attr("dy", ".35em")
       .style("text-anchor", "end")
       .text(function(d) { return d; });
+
+  // Set event handler
+  d3.select("input").on("change", change);
+
+  // Action of event handler
+  function change() {
+
+    // Figure out how to sort the data correctly
+    var x0 = x.domain(data.sort( this.checked
+       ? function(a, b) { return b.total - a.total; } 
+       : function(a, b) { return d3.ascending(a.State, b.State); })
+       .map(function(d) { return d.State; }))
+       .copy();
+       
+
+    var transition = svg.transition().duration(750),
+        delay = function(d, i) { return i * 50; };
+
+    // Transition the columns in the right order
+    transition.selectAll(".bar")
+        .delay(delay)
+        .attr("transform", function(d) { return "translate(" + x0(d.State) + ",0)"; });
+
+    // Transition the names on the x-axis
+    transition.select(".x.axis")
+        .call(xAxis)
+      .selectAll("g")
+        .delay(delay);
+
+  }
+
 
 });
